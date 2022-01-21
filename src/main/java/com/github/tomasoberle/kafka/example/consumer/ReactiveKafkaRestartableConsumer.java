@@ -57,6 +57,9 @@ public class ReactiveKafkaRestartableConsumer implements InitializingBean, Dispo
             log.info("Periodically checking consumer (Instance is created: '{}', stopped flag '{}').",
                     consumer == null ? "false": "true", consumerStopped);
             if (consumer == null || consumerStopped) {
+                if (consumer != null) {
+                    consumer.dispose();
+                }
                 log.info("Creating consumer...");
                 consumer = createConsumer();
                 consumerStopped = false;
