@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -31,38 +30,6 @@ public class ReactiveKafkaProducer {
                 .flatMap(dateAsString -> producerTemplate.send(TOPIC, dateAsString))
                 .flatMap(voidSenderResult -> {
                     if (voidSenderResult.exception() != null) {
-                        return Mono.just(ResponseEntity.internalServerError().body("ERROR\n"));
-                    }
-                    return Mono.just(ResponseEntity.ok("OK\n"));
-                });
-    }
-
-    @PostMapping(path = "/reactive/send/error", produces = MediaType.TEXT_PLAIN_VALUE)
-    public Mono<ResponseEntity<String>> sendError() {
-        return Mono.just("ERROR " + LocalDateTime.now())
-                .doOnNext(s -> log.info("Sending message with error '{}' to topic '{}'", s, TOPIC))
-                .flatMap(dateAsString -> producerTemplate.send(TOPIC, dateAsString))
-                .flatMap(voidSenderResult -> {
-                    if (voidSenderResult.exception() != null) {
-                        return Mono.just(ResponseEntity.internalServerError().body("ERROR\n"));
-                    }
-                    return Mono.just(ResponseEntity.ok("OK\n"));
-                });
-    }
-
-    @PostMapping(path = "/reactive/send/count/{count}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public Mono<ResponseEntity<String>> sendMultiple(@PathVariable int count) {
-        return Mono.just(count)
-                .flatMap(numberOfMessages -> {
-                    for(int i=0; i<numberOfMessages; i++) {
-                        String message = LocalDateTime.now() + " " + i;
-                        log.info("Sending message '{}' to topic '{}'", message, TOPIC);
-                        producerTemplate.send(TOPIC, message).subscribe();
-                    }
-                    return Mono.just("OK");
-                })
-                .flatMap(result -> {
-                    if (!"OK".equals(result)) {
                         return Mono.just(ResponseEntity.internalServerError().body("ERROR\n"));
                     }
                     return Mono.just(ResponseEntity.ok("OK\n"));

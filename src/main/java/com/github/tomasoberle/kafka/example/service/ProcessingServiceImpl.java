@@ -12,9 +12,28 @@ public class ProcessingServiceImpl implements ProcessingService {
     public void process(String value) {
         if (value.startsWith("ERROR")) {
             simulateErrorDuringProcessing(value);
-        } else {
+        } else if (value.startsWith("ERROR_RETRY")) {
+            simulateErrorWithRetryDuringProcessing(value);
+        } else if (value.startsWith("LONG_PROCESSING")) {
             simulateLongProcessing(value);
+        } else {
+            simulateProcessing(value);
         }
+
+    }
+
+    private void simulateErrorWithRetryDuringProcessing(String value) {
+        log.warn("Not supported in this processing service - value {}", value);
+    }
+
+    private void simulateProcessing(String value) {
+        log.info("Consumer processing started: {}", value);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        log.info("Consumer processing successfully finished: {}", value);
     }
 
     private void simulateErrorDuringProcessing(String value) {
@@ -23,12 +42,12 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     private void simulateLongProcessing(String value) {
-        log.info("Consumer processing started: {}", value);
+        log.info("Consumer long processing started: {}", value);
         try {
-            Thread.sleep(10 * 1000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        log.info("Consumer processing successfully finished: {}", value);
+        log.info("Consumer long processing successfully finished: {}", value);
     }
 }

@@ -23,8 +23,8 @@ public class KafkaAckConsumer {
     @KafkaListener(topics = "test-topic")
     public void listener(@Payload String payload, Acknowledgment acknowledgment) {
         log.info("Consuming message in listener (with ACK): {}", payload);
-        processingService.process(payload); // BREAKPOINT (CommitFailedException) - timeout
-        acknowledgment.acknowledge();
+        processingService.process(payload);
+        acknowledgment.acknowledge(); // BREAKPOINT (CommitFailedException) - timeout
         log.info("Kafka ACK has been done for: {}", payload);
     }
 }

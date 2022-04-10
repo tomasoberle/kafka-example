@@ -31,10 +31,34 @@ public class KafkaProducer {
         return ResponseEntity.ok("OK\n");
     }
 
+    @PostMapping(path = "/send/nack", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendWithNackFlag() {
+        String message = "NACK " + LocalDateTime.now();
+        log.info("Sending message with NACK flag '{}' to topic '{}'", message, TOPIC);
+        kafkaTemplate.send(TOPIC, message);
+        return ResponseEntity.ok("OK\n");
+    }
+
     @PostMapping(path = "/send/error", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> sendError() {
         String message = "ERROR " + LocalDateTime.now();
         log.info("Sending message with error '{}' to topic '{}'", message, TOPIC);
+        kafkaTemplate.send(TOPIC, message);
+        return ResponseEntity.ok("OK\n");
+    }
+
+    @PostMapping(path = "/send/error-retry", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendErrorWithRetry() {
+        String message = "ERROR_RETRY " + LocalDateTime.now();
+        log.info("Sending message with error with retry '{}' to topic '{}'", message, TOPIC);
+        kafkaTemplate.send(TOPIC, message);
+        return ResponseEntity.ok("OK\n");
+    }
+
+    @PostMapping(path = "/send/long-processing", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendLongProcessing() {
+        String message = "LONG_PROCESSING " + LocalDateTime.now();
+        log.info("Sending message with long processing flag '{}' to topic '{}'", message, TOPIC);
         kafkaTemplate.send(TOPIC, message);
         return ResponseEntity.ok("OK\n");
     }
