@@ -1,5 +1,8 @@
 package com.github.tomasoberle.kafka.example.producer;
 
+import com.github.tomasoberle.kafka.example.dto.MessageDto;
+import com.github.tomasoberle.kafka.example.dto.TestDto;
+import com.github.tomasoberle.kafka.example.dto.ValueDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -16,11 +19,22 @@ public class KafkaProducer {
     private static final Logger log = LoggerFactory.getLogger(KafkaProducer.class);
 
     private static final String TOPIC = "test-topic";
+    private static final String TOPIC_JSON = "json-topic";
+    private static final String TOPIC_JSON_HANDLER = "json-handler-topic";
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, MessageDto> kafkaTemplateMessageDto;
+    private final KafkaTemplate<String, ValueDto> kafkaTemplateValueDto;
+    private final KafkaTemplate<String, TestDto> kafkaTemplateTestDto;
 
-    public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate) {
+    public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate,
+                         KafkaTemplate<String, MessageDto> kafkaTemplateMessageDto,
+                         KafkaTemplate<String, ValueDto> kafkaTemplateValueDto,
+                         KafkaTemplate<String, TestDto> kafkaTemplateTestDto) {
         this.kafkaTemplate = kafkaTemplate;
+        this.kafkaTemplateMessageDto = kafkaTemplateMessageDto;
+        this.kafkaTemplateValueDto = kafkaTemplateValueDto;
+        this.kafkaTemplateTestDto = kafkaTemplateTestDto;
     }
 
     @PostMapping(path = "/send", produces = MediaType.TEXT_PLAIN_VALUE)
@@ -65,11 +79,38 @@ public class KafkaProducer {
 
     @PostMapping(path = "/send/count/{count}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> sendMultiple(@PathVariable int count) {
-        for (int i=0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             String message = LocalDateTime.now() + " " + i;
             log.info("Sending message '{}' to topic '{}'", message, TOPIC);
             kafkaTemplate.send(TOPIC, message);
         }
+        return ResponseEntity.ok("OK\n");
+    }
+
+    @PostMapping(path = "/send/json-handler/message", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendJsonMessageDto() {
+        LocalDateTime ts = LocalDateTime.now();
+        MessageDto messageDto = new MessageDto();
+        messageDto.setMessage(ts.toString());
+        kafkaTemplateMessageDto.send(TOPIC_JSON_HANDLER, messageDto);
+        return ResponseEntity.ok("OK\n");
+    }
+
+    @PostMapping(path = "/send/json-handler/value", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendJsonValueDto() {
+        LocalDateTime ts = LocalDateTime.now();
+        ValueDto valueDto = new ValueDto();
+        valueDto.setValue(ts.toString());
+        kafkaTemplateValueDto.send(TOPIC_JSON_HANDLER, valueDto);
+        return ResponseEntity.ok("OK\n");
+    }
+
+    @PostMapping(path = "/send/json/test", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> sendJsonTestDto() {
+        LocalDateTime ts = LocalDateTime.now();
+        TestDto testDto = new TestDto();
+        testDto.setData(ts.toString());
+        kafkaTemplateTestDto.send(TOPIC_JSON, testDto);
         return ResponseEntity.ok("OK\n");
     }
 }
